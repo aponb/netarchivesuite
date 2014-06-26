@@ -35,8 +35,6 @@ import java.util.Map;
 import java.util.Set;
 
 import dk.netarkivet.common.exceptions.IOFailure;
-import dk.netarkivet.harvester.indexserver.CombiningMultiFileBasedCache;
-import dk.netarkivet.harvester.indexserver.FileBasedCache;
 
 
 /**
@@ -120,6 +118,7 @@ public class CombiningMultiFileBasedCacheTester extends CacheTestCase {
         }
     }
 
+    @SafeVarargs
     static <T> List<T> list(T... args) {
         return Arrays.asList(args);
     }

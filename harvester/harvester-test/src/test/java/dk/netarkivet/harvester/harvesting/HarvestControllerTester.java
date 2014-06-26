@@ -24,6 +24,13 @@
 */
 package dk.netarkivet.harvester.harvesting;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+
+import junit.framework.TestCase;
 import dk.netarkivet.common.CommonSettings;
 import dk.netarkivet.common.distribute.JMSConnectionMockupMQ;
 import dk.netarkivet.common.exceptions.ArgumentNotValid;
@@ -42,16 +49,12 @@ import dk.netarkivet.harvester.harvesting.metadata.PersistentJobData.HarvestDefi
 import dk.netarkivet.harvester.harvesting.report.AbstractHarvestReport;
 import dk.netarkivet.harvester.harvesting.report.HarvestReport;
 import dk.netarkivet.harvester.harvesting.report.HarvestReportFactory;
-import dk.netarkivet.testutils.*;
+import dk.netarkivet.testutils.FileAsserts;
+import dk.netarkivet.testutils.ReflectUtils;
+import dk.netarkivet.testutils.StringAsserts;
+import dk.netarkivet.testutils.TestFileUtils;
 import dk.netarkivet.testutils.preconfigured.ReloadSettings;
 import dk.netarkivet.testutils.preconfigured.UseTestRemoteFile;
-import junit.framework.TestCase;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Tests for the HarvestController class (which was extracted from
@@ -393,6 +396,7 @@ public class HarvestControllerTester extends TestCase {
 //        assertEquals("Should have no failed files", 0, failed.size());
 //    }
 
+    @SafeVarargs
     public static <T> List<T> list(T... objects) {
         return Arrays.asList(objects);
     }

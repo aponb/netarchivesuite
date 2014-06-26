@@ -77,6 +77,7 @@ public class StringUtilsTester extends TestCase {
     }
 
     /** Helper method that allows varargs. */
+    @SafeVarargs
     private static <T> String conjoinList(String sep, T... objects) {
         if (objects == null) {
             // Can't do Arrays.asList(null)

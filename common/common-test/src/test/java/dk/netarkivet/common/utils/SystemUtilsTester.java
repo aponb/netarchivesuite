@@ -24,14 +24,13 @@
 */
 package dk.netarkivet.common.utils;
 
-import dk.netarkivet.common.Constants;
-import dk.netarkivet.testutils.CollectionAsserts;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import junit.framework.Assert;
 import junit.framework.TestCase;
-
-import java.util.List;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
+import dk.netarkivet.testutils.CollectionAsserts;
 
 /**
  * Unit tests for the class SystemUtils.

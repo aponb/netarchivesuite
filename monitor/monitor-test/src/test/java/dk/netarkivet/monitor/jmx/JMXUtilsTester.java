@@ -26,14 +26,16 @@ package dk.netarkivet.monitor.jmx;
 
 import javax.management.remote.JMXServiceURL;
 
-import com.sun.jndi.rmi.registry.RegistryContextFactory;
 import junit.framework.TestCase;
+
+import com.sun.jndi.rmi.registry.RegistryContextFactory;
 
 import dk.netarkivet.common.exceptions.IOFailure;
 import dk.netarkivet.common.utils.JMXUtils;
 
 
 
+@SuppressWarnings("restriction")
 public class JMXUtilsTester extends TestCase {
 
     private static final String JNDI_INITIAL_CONTEXT_PROPERTY =
@@ -56,6 +58,7 @@ public class JMXUtilsTester extends TestCase {
      * Test method for 'dk.netarkivet.monitor.webinterface.JMXUtils.getUrl(String, int, int)'
      */
     public final void testGetUrl() {
+        @SuppressWarnings("unused")
         JMXServiceURL JmxServiceUrl = JMXUtils.getUrl(defaultServer, 8000, 8100);
     }
 
@@ -83,11 +86,13 @@ public class JMXUtilsTester extends TestCase {
     private static void ensureJndiInitialContext() {
 
        if (System.getProperty(JNDI_INITIAL_CONTEXT_PROPERTY) == null) {
-           System.setProperty(
+
+            Class<RegistryContextFactory> registryContextFactoryClass = RegistryContextFactory.class;
+        System.setProperty(
                    JNDI_INITIAL_CONTEXT_PROPERTY,
-                   RegistryContextFactory.class.getCanonicalName());
+                   registryContextFactoryClass.getCanonicalName());
            System.out.println("Set property '" + JNDI_INITIAL_CONTEXT_PROPERTY + "' to: "
-                   + RegistryContextFactory.class.getCanonicalName());
+                   + registryContextFactoryClass.getCanonicalName());
        } else {
            System.out.println("Property '" + JNDI_INITIAL_CONTEXT_PROPERTY
                    + "' is set to: "

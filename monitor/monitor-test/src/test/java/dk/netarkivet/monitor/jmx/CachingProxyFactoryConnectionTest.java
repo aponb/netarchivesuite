@@ -48,6 +48,7 @@ public class CachingProxyFactoryConnectionTest extends TestCase {
      * Test method for 'dk.netarkivet.monitor.jmx.CachingProxyFactoryConnectionFactory.CachingProxyFactoryConnection(JMXProxyFactoryConnectionFactory)'
      */
     public void testCachingProxyFactoryConnection() {
+        @SuppressWarnings("unused")
         JMXProxyConnectionFactory f = new CachingProxyConnectionFactory(new DummyJMXProxyConnectionFactory());
     }
 
@@ -71,6 +72,7 @@ public class CachingProxyFactoryConnectionTest extends TestCase {
         }
     }
     
+    @SuppressWarnings("unused")
     private class DummyJmxProxyFactory {
         
     }
