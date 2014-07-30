@@ -80,7 +80,6 @@ import dk.netarkivet.wayback.indexer.IndexerTestCase;
  * But since we are not using JUnit4 Parameterized testing is to cumbersome.
  */
 @SuppressWarnings({ "unchecked", "rawtypes", "unused" })
-@Ignore("Not in junit 3 TestSuite")
 public class NetarchiveResourceStoreWarcTester extends IndexerTestCase {
 
     NetarchiveResourceStore netarchiveResourceStore = null;
