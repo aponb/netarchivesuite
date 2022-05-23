@@ -686,6 +686,10 @@ public class FileUtils {
         return FreeSpaceProviderFactory.getInstance().getBytesFree(f);
     }
 
+    public static long getBytesFree(File f, long requestedSize) {
+        return FreeSpaceProviderFactory.getInstance().getBytesFree(f, requestedSize);
+    }
+
     /**
      * @param theFile A file to make relative
      * @param theDir A directory

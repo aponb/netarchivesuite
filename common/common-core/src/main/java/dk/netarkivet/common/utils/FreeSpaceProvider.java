@@ -36,4 +36,5 @@ public interface FreeSpaceProvider {
      */
     long getBytesFree(File f);
 
+    long getBytesFree(File f, long requestedFilesize);
 }

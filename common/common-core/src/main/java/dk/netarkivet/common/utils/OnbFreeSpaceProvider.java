@@ -94,10 +94,25 @@ public class OnbFreeSpaceProvider implements FreeSpaceProvider {
      * files, on read only files and if free space is lower than given freespacepercentage (in freespacemode percent) or 
      * freespace (in freespacemode byte) in settings.
      *
-     * @param f a given file
+     * @param f a given dir
      * @return the number of bytes free.
      */
     public long getBytesFree(File f) {
+        log.debug("getBytesFree without requestedfilesize calling");
+        return getBytesFree(f, 0);
+    }
+
+    /**
+     * Returns the number of bytes free on the file system that the given file resides on. Will return 0 on non-existing
+     * files, on read only files and if free space is lower than given freespacepercentage (in freespacemode percent) or
+     * freespace (in freespacemode byte) in settings.
+     *
+     * @param f a given dir
+     * @param requestedFilesize filesize of file which is planned to copy to the given dir. If this value is 0, then
+     *                          only the bytesFree for the directory will be calculated
+     * @return the number of bytes free.
+     */
+    public long getBytesFree(File f, long requestedFilesize) {
         ArgumentNotValid.checkNotNull(f, "File f");
         if (!f.exists()) {
             log.warn("The file '{}' does not exist. The value 0 returned.", f.getAbsolutePath());
@@ -109,8 +124,9 @@ public class OnbFreeSpaceProvider implements FreeSpaceProvider {
             return 0;
         }
 
+        log.debug("requestedFilesize is '{}'", requestedFilesize);
         log.debug("FreeSpaceMode is '{}'", FREESPACEPROVIDER_FREESPACEMODE);
-        
+
         if (FREESPACEPROVIDER_FREESPACEMODE_PERCENTAGE.equals(FREESPACEPROVIDER_FREESPACEMODE)) {
             long totalspace;
             long usable;
@@ -118,32 +134,39 @@ public class OnbFreeSpaceProvider implements FreeSpaceProvider {
             totalspace = f.getTotalSpace();
             usable = f.getUsableSpace();
 
-            double freeSpaceInPercent =  100.0 / totalspace * usable;
+            log.debug("Totalspace: " + totalspace);
+            log.debug("Usablespace: " + usable);
+
+            long usable_minus_filesize = usable - requestedFilesize;
+
+            log.debug("usable_minus_filesize: " + usable_minus_filesize);
+
+            double freeSpaceInPercent =  100.0 / totalspace * usable_minus_filesize;
             log.debug("minfreespacepercentage is '{}'", FREESPACEPROVIDER_MINFREESPACEPERCENTAGE);
             log.debug("Free space in percent is '{}'", freeSpaceInPercent);
-        	
+
             if (freeSpaceInPercent <= FREESPACEPROVIDER_MINFREESPACEPERCENTAGE) {
                 log.warn("Free space on '{}' is lower than '{}' percent. The value 0 returned.", f.getAbsolutePath(), FREESPACEPROVIDER_MINFREESPACEPERCENTAGE);
                 return 0;
             }
             else {
-            	return usable;
+                return usable;
             }
         }
 
         if (FREESPACEPROVIDER_FREESPACEMODE_BYTE.equals(FREESPACEPROVIDER_FREESPACEMODE)) {
-            log.debug("minfreespace is '{}'", FREESPACEPROVIDER_MINFREESPACE);           
+            log.debug("minfreespace is '{}'", FREESPACEPROVIDER_MINFREESPACE);
             log.debug("Free space in byte is '{}'", f.getUsableSpace());
-            
-            if (f.getUsableSpace() < FREESPACEPROVIDER_MINFREESPACE) {
+
+            if (f.getUsableSpace() - requestedFilesize < FREESPACEPROVIDER_MINFREESPACE) {
                 log.warn("Free space on '{}' is lower than '{}' bytes. The value 0 returned.", f.getAbsolutePath(), FREESPACEPROVIDER_MINFREESPACE);
                 return 0;
             }
-        	else {
-        		return f.getUsableSpace(); 
-        	}
+            else {
+                return f.getUsableSpace() - requestedFilesize;
+            }
         }
-        
+
         log.warn("Mode '{}' not valid. The value 0 returned.", FREESPACEPROVIDER_FREESPACEMODE_BYTE);
         return 0;
     }

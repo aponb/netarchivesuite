@@ -71,6 +71,11 @@ public class FilebasedFreeSpaceProvider implements FreeSpaceProvider {
      * @return the number of bytes free.
      */
     public long getBytesFree(File f) {
+        return getBytesFree(f, 0);
+    }
+
+    @Override
+    public long getBytesFree(File f, long requestedFilesize) {
         ArgumentNotValid.checkNotNull(f, "File f");
 
         BufferedReader reader = null;

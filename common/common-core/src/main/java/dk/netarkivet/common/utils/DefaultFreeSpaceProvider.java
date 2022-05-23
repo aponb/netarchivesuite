@@ -46,6 +46,11 @@ public class DefaultFreeSpaceProvider implements FreeSpaceProvider {
      * @return the number of bytes free on the file system where file f resides. 0 if the file cannot be found.
      */
     public long getBytesFree(File f) {
+        return getBytesFree(f, 0);
+    }
+
+    @Override
+    public long getBytesFree(File f, long requestedFilesize) {
         ArgumentNotValid.checkNotNull(f, "File f");
         if (!f.exists()) {
             log.warn("The file '{}' does not exist. The value 0 returned.", f.getAbsolutePath());
@@ -53,5 +58,4 @@ public class DefaultFreeSpaceProvider implements FreeSpaceProvider {
         }
         return f.getUsableSpace();
     }
-
 }

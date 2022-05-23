@@ -247,7 +247,7 @@ public final class BitarchiveAdmin {
         ArgumentNotValid.checkNotNegative(requestedSize, "requestedSize");
 
         for (File dir : archivedFiles.keySet()) {
-            long bytesFreeInDir = FileUtils.getBytesFree(dir);
+            long bytesFreeInDir = FileUtils.getBytesFree(dir, requestedSize);
             // TODO If it turns out that it has not enough space for
             // this file, it should resend the Upload message
             // This should probably be handled in the
@@ -255,7 +255,8 @@ public final class BitarchiveAdmin {
             // This is bug 1586.
 
             if (checkArchiveDir(dir) && (bytesFreeInDir > minSpaceLeft)
-                    && (bytesFreeInDir - requestedSize > minSpaceRequired)) {
+//                    && (bytesFreeInDir - requestedSize > minSpaceRequired)) {
+                    && (bytesFreeInDir > minSpaceRequired)) {
                 File filedir = new File(dir, Constants.TEMPORARY_DIRECTORY_NAME);
                 return new File(filedir, arcFileName);
             } else {
