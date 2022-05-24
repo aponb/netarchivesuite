@@ -127,6 +127,14 @@ public class OnbFreeSpaceProvider implements FreeSpaceProvider {
         log.debug("requestedFilesize is '{}'", requestedFilesize);
         log.debug("FreeSpaceMode is '{}'", FREESPACEPROVIDER_FREESPACEMODE);
 
+        if (requestedFilesize > 0) {
+            try {
+                log.debug("start waiting for 60 seconds");
+                Thread.sleep(60 * 1000);
+            } catch (InterruptedException e) {}
+            log.debug("finished waiting for 60 seconds");
+        }
+
         if (FREESPACEPROVIDER_FREESPACEMODE_PERCENTAGE.equals(FREESPACEPROVIDER_FREESPACEMODE)) {
             long totalspace;
             long usable;
