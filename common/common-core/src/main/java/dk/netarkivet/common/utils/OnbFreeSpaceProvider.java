@@ -71,6 +71,14 @@ public class OnbFreeSpaceProvider implements FreeSpaceProvider {
     public static final String FREESPACEPROVIDER_MINFREESPACE_SETTING = "settings.common.freespaceprovider.minfreespace";
 
     /**
+     * <b>settings.common.freespaceprovider.waitingtime</b>: <br>
+     * The setting for the waitingtime in seconds before a diskfree check will be made.
+     * Only when requestedFilesize is > 0. Default is 60 seconds
+     */
+    public static final String FREESPACEPROVIDER_WAITINGTIME_SETTING = "settings.common.freespaceprovider.waitingtime";
+    private static final long FREESPACEPROVIDER_WAITINGTIME_DEFAULT = 60;
+
+    /**
      * The setting the mode for Provider (percent = percentage check, byte = byte check)
      **/
     private static final String FREESPACEPROVIDER_FREESPACEMODE = Settings.get(FREESPACEPROVIDER_FREESPACEMODE_SETTING);
@@ -114,6 +122,8 @@ public class OnbFreeSpaceProvider implements FreeSpaceProvider {
      */
     public long getBytesFree(File f, long requestedFilesize) {
         ArgumentNotValid.checkNotNull(f, "File f");
+        log.info("checking bytes free on " + f.getAbsolutePath());
+
         if (!f.exists()) {
             log.warn("The file '{}' does not exist. The value 0 returned.", f.getAbsolutePath());
             return 0;
@@ -124,15 +134,23 @@ public class OnbFreeSpaceProvider implements FreeSpaceProvider {
             return 0;
         }
 
-        log.debug("requestedFilesize is '{}'", requestedFilesize);
-        log.debug("FreeSpaceMode is '{}'", FREESPACEPROVIDER_FREESPACEMODE);
+        log.info("requestedFilesize is '{}'", requestedFilesize);
+        log.info("FreeSpaceMode is '{}'", FREESPACEPROVIDER_FREESPACEMODE);
 
         if (requestedFilesize > 0) {
+            long waitingtime =  FREESPACEPROVIDER_WAITINGTIME_DEFAULT;
             try {
-                log.debug("start waiting for 60 seconds");
-                Thread.sleep(60 * 1000);
+                waitingtime =  Long.parseLong(Settings.get(FREESPACEPROVIDER_WAITINGTIME_SETTING));
+                log.info("waiting time is " + waitingtime + " seconds");
+            }  catch (Exception e) {
+                log.warn(FREESPACEPROVIDER_WAITINGTIME_SETTING + " not set. Using default value " + FREESPACEPROVIDER_WAITINGTIME_DEFAULT);
+            }
+
+            try {
+                log.info("start waiting for " + waitingtime + " seconds");
+                Thread.sleep(waitingtime * 1000);
             } catch (InterruptedException e) {}
-            log.debug("finished waiting for 60 seconds");
+            log.info("finished waiting for " + waitingtime +" seconds");
         }
 
         if (FREESPACEPROVIDER_FREESPACEMODE_PERCENTAGE.equals(FREESPACEPROVIDER_FREESPACEMODE)) {
@@ -150,8 +168,8 @@ public class OnbFreeSpaceProvider implements FreeSpaceProvider {
             log.debug("usable_minus_filesize: " + usable_minus_filesize);
 
             double freeSpaceInPercent =  100.0 / totalspace * usable_minus_filesize;
-            log.debug("minfreespacepercentage is '{}'", FREESPACEPROVIDER_MINFREESPACEPERCENTAGE);
-            log.debug("Free space in percent is '{}'", freeSpaceInPercent);
+            log.info("minfreespacepercentage is '{}'", FREESPACEPROVIDER_MINFREESPACEPERCENTAGE);
+            log.info("Free space in percent is '{}'", freeSpaceInPercent);
 
             if (freeSpaceInPercent <= FREESPACEPROVIDER_MINFREESPACEPERCENTAGE) {
                 log.warn("Free space on '{}' is lower than '{}' percent. The value 0 returned.", f.getAbsolutePath(), FREESPACEPROVIDER_MINFREESPACEPERCENTAGE);
@@ -163,8 +181,8 @@ public class OnbFreeSpaceProvider implements FreeSpaceProvider {
         }
 
         if (FREESPACEPROVIDER_FREESPACEMODE_BYTE.equals(FREESPACEPROVIDER_FREESPACEMODE)) {
-            log.debug("minfreespace is '{}'", FREESPACEPROVIDER_MINFREESPACE);
-            log.debug("Free space in byte is '{}'", f.getUsableSpace());
+            log.info("minfreespace is '{}'", FREESPACEPROVIDER_MINFREESPACE);
+            log.info("Free space in byte is '{}'", f.getUsableSpace());
 
             if (f.getUsableSpace() - requestedFilesize < FREESPACEPROVIDER_MINFREESPACE) {
                 log.warn("Free space on '{}' is lower than '{}' bytes. The value 0 returned.", f.getAbsolutePath(), FREESPACEPROVIDER_MINFREESPACE);
