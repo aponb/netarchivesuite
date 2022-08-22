@@ -265,7 +265,7 @@ public abstract class CrawlLogIndexCache extends CombiningMultiFileBasedCache<Lo
             File totalIndexDir = new File(indexLocation);
             log.info("Gzip-compressing the individual {} index files of combine task # {}",
                     totalIndexDir.list().length, indexingJobCount);
-            ZipUtils.gzipFiles(totalIndexDir, resultDir);
+            ZipUtils.gzipFiles(totalIndexDir, resultDir, true);
             log.info(
                     "Completed combine task #{} that combined a dataset with {} crawl logs (entries in combined index: {}) - compressed index has size {}",
                     indexingJobCount, datasetSize, docsInIndex, FileUtils.getHumanReadableFileSize(resultDir));

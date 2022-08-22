@@ -29,11 +29,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
+import java.util.zip.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,6 +144,10 @@ public final class ZipUtils {
      * operation is not successful, the directory will not be created.
      */
     public static void gzipFiles(File fromDir, File toDir) {
+        gzipFiles(fromDir, toDir, false);
+    }
+
+    public static void gzipFiles(File fromDir, File toDir, boolean skipCorruptfiles) {
         ArgumentNotValid.checkNotNull(fromDir, "File fromDir");
         ArgumentNotValid.checkNotNull(toDir, "File toDir");
         ArgumentNotValid.checkTrue(fromDir.isDirectory(), "source '" + fromDir + "' must be an existing directory");
@@ -159,11 +159,23 @@ public final class ZipUtils {
             File[] fromFiles = fromDir.listFiles();
             for (File f : fromFiles) {
                 if (f.isFile()) {
-                    gzipFileInto(f, tmpDir);
+                    try {
+                        gzipFileInto(f, tmpDir);
+                    }
+                    catch(Exception e) {
+                        log.error(e.getMessage());
+                        if (skipCorruptfiles) {
+                            continue;
+                        }
+                        else {
+                            throw e;
+                        }
+                    }
                 } else {
                     log.trace("Skipping non-file '{}'", f);
                 }
             }
+
             if (!tmpDir.renameTo(toDir)) {
                 throw new IOFailure("Failed to rename temp dir '" + tmpDir + "' to desired target '" + toDir + "'");
             }
@@ -178,6 +190,30 @@ public final class ZipUtils {
         }
     }
 
+    private static boolean isGzipFileValid(File aFile) {
+        File tmpDir = null;
+
+        try {
+            GZIPInputStream in = new LargeFileGZIPInputStream(new FileInputStream(aFile));
+            tmpDir = FileUtils.createUniqueTempDir(aFile.getAbsoluteFile().getParentFile(), aFile.getName());
+            File tmpFile = new File(tmpDir, "1");
+            FileUtils.writeStreamToFile(in, tmpFile);
+            return true;
+        } catch (Exception e) {
+            log.error("Error verifying '{}' by gunzipping", aFile, e);
+            return false;
+        }
+        finally {
+            if (tmpDir != null) {
+                try {
+                    FileUtils.removeRecursively(tmpDir);
+                } catch (IOFailure e) {
+                    log.debug("Error removing temporary directory '{}' after gzipping of '{}'", tmpDir, aFile, e);
+                }
+            }
+        }
+    }
+
     /**
      * GZip a file into a given dir. The resulting file will have .gz appended.
      *
@@ -187,8 +223,9 @@ public final class ZipUtils {
     private static void gzipFileInto(File f, File toDir) {
         try {
             GZIPOutputStream out = null;
+            File outF = null;
             try {
-                File outF = new File(toDir, f.getName() + GZIP_SUFFIX);
+                outF = new File(toDir, f.getName() + GZIP_SUFFIX);
                 out = new GZIPOutputStream(new FileOutputStream(outF));
                 FileUtils.writeFileToStream(f, out);
             } finally {
@@ -199,6 +236,10 @@ public final class ZipUtils {
                         // Not really a problem to not be able to close,
                         // so don't abort
                         log.debug("Error closing output file for '{}'", f, e);
+                    }
+
+                    if (!isGzipFileValid(outF)) {
+                        throw new IOException("Error validating file '" + f + "'");
                     }
                 }
             }
