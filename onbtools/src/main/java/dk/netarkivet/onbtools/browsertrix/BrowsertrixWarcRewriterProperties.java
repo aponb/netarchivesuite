@@ -201,18 +201,8 @@ public class BrowsertrixWarcRewriterProperties {
 			return false;
 		}
 
-		log.info("metadataDir:" + metadataDir);
-		if (destDir == null) {
-			return false;
-		}
-
 		log.info("dumpDir:" + dumpDir);
 		if (dumpDir == null) {
-			return false;
-		}
-
-		log.info("dumpDir:" + dumpDir);
-		if (dedupIndexDir == null) {
 			return false;
 		}
 

@@ -276,33 +276,6 @@ public class NasSeedManager {
 		
 		return true;
 	}
-	
-	private long createFinishedJobForDomain(long aHarvestid, String aDomainname, long aNumberOfObjects, long aNumberOfBytes) {
-		log.info("create job");
-		
-	    JobDAO jobdao = JobDAO.getInstance();
-
-        long forceMaxObjectsPerDomain = -1, forceMaxBytesPerDomain = -1, forceMaxJobRunningTime = -1;
-        int harvestNum = 1;
-        HeritrixTemplate heritrixtemplate = new H1HeritrixTemplate(OrderXmlBuilder.createDefault().getDoc());
-        
-        Job job = new Job(aHarvestid,
-        		DefaultDomainConfigurationCreator.createDefaultDomainConfiguration(p.getConfigurationname(), aDomainname),
-                heritrixtemplate,
-                DefaultDomainConfigurationCreator.HIGHPRIORITY_CHANNEL,
-                forceMaxObjectsPerDomain,
-                forceMaxBytesPerDomain,
-                forceMaxJobRunningTime,
-                harvestNum);
-	    
-	    jobdao.create(job);
-	    job.setStatus(JobStatus.fromOrdinal(JobInfo.DONE));
-	    job.setActualStart(new Date());
-	    job.setActualStop(new Date());
-	    	    
-	    jobdao.update(job);
-	    return job.getJobID();
-	}
 
 	private String loadDummyTemplate() {
 		String template = "";
