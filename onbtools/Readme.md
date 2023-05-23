@@ -36,7 +36,7 @@ mvn package -Dmaven.test.skip=true
 
 
 ### How to deploy and run
-  * copy netarchivesuite/onbtools/target/onbtools-7.4.4.jar to a running netarchivesuite instance
+  * copy netarchivesuite/onbtools/target/onbtools-7.4.4.jar to the lib dir of a used netarchivesuite instance
   * customize settings in scripts/BrowsertrixWarcRewriter.properties
   * customize INSTALLDIR Path in scripts/rewrite.sh
   * call scripts/rewrite.sh
