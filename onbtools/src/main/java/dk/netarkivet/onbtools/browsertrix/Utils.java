@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Calendar;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
@@ -28,6 +31,9 @@ public class Utils {
 
 	public static DateTimeFormatter TIMESTAMP14 = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 	public static final int TIMESTAMP14_LEN = 14;
+
+	public static final int TIMESTAMP17_LEN = 17;
+
 	/**
 	 * Utility function for creating arc-style date stamps
 	 * in the format yyyyMMddHHmmss.
@@ -42,6 +48,23 @@ public class Utils {
 
 	public static Date parse14DigitDate(String str) throws ParseException{
 		return Date.from(LocalDateTime.parse(str, TIMESTAMP14).atZone(ZoneId.systemDefault()).toInstant());
+	}
+
+	public static Date parse17DigitDate(String str) throws ParseException {
+		// does not work due to https://bugs.openjdk.java.net/browse/JDK-8031085
+		//return Date.from(LocalDateTime.parse(str, TIMESTAMP17).atZone(ZoneId.systemDefault()).toInstant());
+
+		// work around:
+
+		Date d = parse14DigitDate(str.substring(0, TIMESTAMP14_LEN));
+
+		int millis = Integer.parseInt(str.substring(TIMESTAMP14_LEN));
+
+		Calendar c = Calendar.getInstance();
+		c.setTime(d);
+		c.add(Calendar.MILLISECOND, millis);
+
+		return c.getTime();
 	}
 
 	//2023-05-19T18:19:55Z
@@ -107,6 +130,10 @@ public class Utils {
 		writeLineToFile(aLine, aFile, true);
 	}
 
+	public static void writeLineToFile(String aLine, File aFile) {
+		writeLineToFile(aLine, aFile.getAbsolutePath(), true);
+	}
+
 	public static void writeLineToFile(String aLine, String aFile, boolean aAppend) {
 		BufferedWriter fout = null;
 
@@ -126,6 +153,14 @@ public class Utils {
 			}
 			log.error(e2);
 		}
+	}
+
+	public static double round(double value, int places) {
+		if (places < 0) throw new IllegalArgumentException();
+
+		BigDecimal bd = new BigDecimal(value);
+		bd = bd.setScale(places, RoundingMode.HALF_UP);
+		return bd.doubleValue();
 	}
 
 	public static PropertiesConfiguration getPropertiesConfiguration(String aPropertiesfilename) throws ConfigurationException {

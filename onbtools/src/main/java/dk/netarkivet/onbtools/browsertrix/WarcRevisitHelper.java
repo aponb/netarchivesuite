@@ -27,18 +27,27 @@ public class WarcRevisitHelper implements Serializable{
 		this.refersToDateStr = refersToDateStr;
 	}
 
-	public String getRefersToUrl() {
-		return refersToUrl;
+	public String getRefersToTargetUrl() {
+		return refersToTargetUrl;
 	}
 
-	public void setRefersToUrl(String refersToUrl) {
-		this.refersToUrl = refersToUrl;
+	public void setRefersToTargetUrl(String refersToTargetUrl) {
+		this.refersToTargetUrl = refersToTargetUrl;
+	}
+
+	public String getRefersTo() {
+		return refersTo;
+	}
+
+	public void setRefersTo(String refersTo) {
+		this.refersTo = refersTo;
 	}
 
 	WarcRecordSer wrs;
 	String dedupLogLine;
 	String refersToDateStr;
-	String refersToUrl;
+	String refersToTargetUrl;
+	String refersTo;
 
 	public WarcRevisitHelper() {
 	}

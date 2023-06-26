@@ -12,9 +12,6 @@ public class CdxLineAnalyzer {
     long jobid = -1;
     boolean valid = false;
     boolean dnsEntry = false;
-    
-    boolean cdx9 = false;
-    boolean cdx11 = false;
 
 	int domainstatus;
 	
@@ -32,26 +29,14 @@ public class CdxLineAnalyzer {
     final static int RESPONSECODE = 4;
     final static int HASH = 5;
     final static int REDIRECT = 6;
-    
-    // nur bei CDX11
-    final static int ROBOTFLAGS = 7;
-    final static int LENGTH = 8;
-    
-    final static int OFFSET_CDX9 = 7;
-    final static int ARCFILENAME_CDX9 = 8;
-
-    int offset_idx = OFFSET_CDX9;
-    int arcfilename_idx = ARCFILENAME_CDX9;
-    
-    final static int OFFSET_CDX11 = 9;
-    final static int ARCFILENAME_CDX11 = 10;
+    final static int OFFSET = 7;
+    final static int ARCFILENAME = 8;
 
     final static int NUMBEROFFIELDS_CDX9  = 9;
-    final static int NUMBEROFFIELDS_CDX11 = 11;
 
 	int numberOfCdxFields = NUMBEROFFIELDS_CDX9;
     
-    final static int MAX_NUMBEROFFIELDS = NUMBEROFFIELDS_CDX11;
+    final static int MAX_NUMBEROFFIELDS = NUMBEROFFIELDS_CDX9;
     
     String[] fields = new String[MAX_NUMBEROFFIELDS];
     
@@ -63,17 +48,6 @@ public class CdxLineAnalyzer {
 //  [URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE,
 //   DIGEST, REDIRECT, OFFSET, FILENAME]
     
-//	# CDX 11 Format
-//  [URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE,
-//   DIGEST, REDIRECT, ROBOTFLAGS, LENGTH, OFFSET, FILENAME]
-
-// vgl /org/netpreserve/commons/cdx/cdxrecord/CdxLineFormat.java ONB_METADATA_LINE
-//	# ONB CDXDATA Format = CDX 11 Format + ONB Metadata
-//  [URLKEY, TIMESTAMP, ORIGINAL, MIMETYPE, STATUSCODE,
-//   DIGEST, REDIRECT, ROBOTFLAGS, LENGTH, OFFSET, FILENAME
-//    ,CONTENT_LENGTH, ONB_IPADDRESS, ONB_PUID, PAYLOAD_LENGTH]
-//
-    
     public CdxLineAnalyzer(String aLine) {
         this(aLine, false);
     }
@@ -82,31 +56,35 @@ public class CdxLineAnalyzer {
         line = aLine;
         allowInvalidFiles = aAllowInvalidFiles;
     }
-    
-    public static String getHashOnly(String line) {
-    	try {
-        	String[] tokens = line.split(" ");
-        	
-        	return tokens[HASH];
-    	}
-    	catch(Exception e) {
-    		log.error("getHashOnly() throws exception. should not happen.");
-    		throw new RuntimeException();
-    	}
-    }
 
-    public static String getUrlOnly(String line) {
-    	try {
-        	String[] tokens = line.split(" ");
-        	
-        	return tokens[URL];
-    	}
-    	catch(Exception e) {
-    		log.error("getUrlOnly() throws exception. should not happen.");
-    		throw new RuntimeException();
-    	}
-    }
-    
+	/* for quick response, requires valid cdx line (works for cdx9 and cdx11)
+	 *
+	 */
+
+	public static String getFieldOnly(String line, int fieldid) {
+		try {
+			String[] tokens = line.split(" ");
+
+			return tokens[fieldid];
+		}
+		catch(Exception e) {
+			log.error("getFieldOnly() throws exception. should not happen. Called fieldid " + fieldid);
+			throw new RuntimeException();
+		}
+	}
+
+	public static String getHashOnly(String line) {
+		return getFieldOnly(line, HASH);
+	}
+
+	public static String getUrlOnly(String line) {
+		return getFieldOnly(line, URL);
+	}
+
+	public static String getResponsecodelOnly(String line) {
+		return getFieldOnly(line, RESPONSECODE);
+	}
+
     
     public String getCdxLine() {
     	String line = "";
@@ -134,11 +112,10 @@ public class CdxLineAnalyzer {
         int endIndex = -1;
         try {
             while(true) {
-            	if (currentField == NUMBEROFFIELDS_CDX11) {
-             		log.debug("more than 11 fields. Storing the 11 fields as cdx11 and the rest as onbcdxdata");
+            	if (currentField == NUMBEROFFIELDS_CDX9) {
+             		log.debug("more than 9 fields. Storing the 9 fields as cdx9 and the rest as onbcdxdata");
              		onbCdxDataAnalayzer = new OnbCdxDataAnalyzer(line.substring(currentIndex));
 
-             		setCdx11Flags();
              		onbCdxDataAnalayzer.analyze();
              		if (!onbCdxDataAnalayzer.isValid()) {
              			log.error("onbcdxdata are not valid." + onbCdxDataAnalayzer.getLine());
@@ -165,15 +142,10 @@ public class CdxLineAnalyzer {
 
             	if (endIndex == -1) {
             		 if (currentField == NUMBEROFFIELDS_CDX9) {
-            			 cdx9 = true;
-            			 break;
-            		 }
-            		 else if (currentField == NUMBEROFFIELDS_CDX11) {
-            			 setCdx11Flags();
             			 break;
             		 }
             		 else {
-                 		log.error("incorrect number of fields. Is " + currentField + " - should be " + NUMBEROFFIELDS_CDX9 + " or " + NUMBEROFFIELDS_CDX11 + ". Correct CDX Format?");
+                 		log.error("incorrect number of fields. Is " + currentField + " - should be " + NUMBEROFFIELDS_CDX9 + ". Correct CDX Format?");
                  		return false;
             		 }
             	}
@@ -198,13 +170,6 @@ public class CdxLineAnalyzer {
         return true;
     }
     
-    private void setCdx11Flags() {
-		 offset_idx = OFFSET_CDX11;
-		 arcfilename_idx = ARCFILENAME_CDX11;
-		 cdx11 = true;
-		 numberOfCdxFields = NUMBEROFFIELDS_CDX11;
-    }
-
     final String GZPOS_MARKER = ".gz,";
     
 	private void analyzeArcfilename() {
@@ -213,13 +178,13 @@ public class CdxLineAnalyzer {
 
 		int idx = -1;
 		
-		if ((idx = fields[arcfilename_idx].indexOf(GZPOS_MARKER)) > 0) {
+		if ((idx = fields[ARCFILENAME].indexOf(GZPOS_MARKER)) > 0) {
 			gzposMarkerDetected = true;
 			
-			String arcfilename = fields[arcfilename_idx];
+			String arcfilename = fields[ARCFILENAME];
 			
-			fields[arcfilename_idx] = arcfilename.substring(0, idx + GZPOS_MARKER.length() - 1);
-			fields[offset_idx] = arcfilename.substring(idx + GZPOS_MARKER.length());
+			fields[ARCFILENAME] = arcfilename.substring(0, idx + GZPOS_MARKER.length() - 1);
+			fields[OFFSET] = arcfilename.substring(idx + GZPOS_MARKER.length());
 		}
 		
         ArcFileName arcFileName = new ArcFileName(getArcfilename(), allowInvalidFiles);
@@ -282,19 +247,11 @@ public class CdxLineAnalyzer {
 		return fields[REDIRECT];
 	}
 	
-	public String getRobotflags() {
-		return fields[ROBOTFLAGS];
-	}
-
-	public String getLength() {
-		return fields[LENGTH];
-	}
-	
 	public String getOffset() {
-		return fields[offset_idx];
+		return fields[OFFSET];
 	}
 	public String getArcfilename() {
-		return fields[arcfilename_idx];
+		return fields[ARCFILENAME];
 	}
 
 	public String getDomainname() {
@@ -320,14 +277,6 @@ public class CdxLineAnalyzer {
 		return dnsEntry;
 	}
 	
-	public boolean isCdx9() {
-		return cdx9;
-	}
-
-	public boolean isCdx11() {
-		return cdx11;
-	}
-
 	public boolean hasOnbCdxData() {
 		if (onbCdxDataAnalayzer != null && onbCdxDataAnalayzer.isValid()) {
 			return true;

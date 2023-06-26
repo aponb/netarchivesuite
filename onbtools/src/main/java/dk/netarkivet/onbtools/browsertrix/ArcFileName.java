@@ -224,7 +224,15 @@ public class ArcFileName {
             
             try {
                 timestamp = st.nextToken();
-                timestampDate = Utils.parse14DigitDate(timestamp);
+                if (timestamp.length() == Utils.TIMESTAMP14_LEN) {
+                    timestampDate = Utils.parse14DigitDate(timestamp);
+                }
+                else if (timestamp.length() == Utils.TIMESTAMP17_LEN) {
+                    timestampDate = Utils.parse17DigitDate(timestamp);
+                }
+                else {
+                    throw new Exception("timestamp invalid len (should be 14 or 17)");
+                }
             }
             catch(Exception e) {
             	String str = "can't get timestamp: "+ e.getMessage();

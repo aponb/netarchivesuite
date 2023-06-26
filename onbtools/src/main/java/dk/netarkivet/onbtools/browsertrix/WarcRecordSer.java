@@ -28,67 +28,70 @@ public class WarcRecordSer implements Serializable{
 	Long contentLen;
 	Long httpheaderLen;
 	Long payloadLen;
-    Date warcDate;
+	Date warcDate;
 	byte[] httpHeaderRaw;
-	
-	
-	public WarcRecordSer(WarcRecord aOriginalRecord, Long aContentLength) {
-    	httpHeaderStr = "";
-        contentLen = aContentLength;
-        httpheaderLen = 0L;
-		
-        // http header
-        HttpHeader httpHeader = aOriginalRecord.getHttpHeader();
-        
-        if (httpHeader != null) {
-        	if (httpHeader.httpVersion != null) {
-        		httpHeaderStr += String.format("%s ",  httpHeader.httpVersion); 
-        		
-        	}
-        	if (httpHeader.statusCode != null) {
-        		httpHeaderStr += String.format("%d ",  httpHeader.statusCode); 
-        		
-        	}
-        	if (httpHeader.reasonPhrase != null) {
-        		httpHeaderStr += String.format("%s ",  httpHeader.reasonPhrase); 
-        		
-        	}
-    		httpHeaderStr += String.format("\n"); 
 
-            for (HeaderLine hl : httpHeader.getHeaderList()) {
-                httpHeaderStr += String.format("%s: %s\n", hl.name, hl.value);
-            }
-            
-        	httpheader_contentType = httpHeader.contentType;
-            httpheader_statusCodeStr = httpHeader.statusCodeStr;
-            
-            httpheaderLen = contentLen - httpHeader.getPayloadLength();
-            httpHeaderRaw = httpHeader.getHeader();
-        }
-        
-        if (aOriginalRecord.header != null) {
-            warcTypeIdx = aOriginalRecord.header.warcTypeIdx;
-            warcTargetUriStr = aOriginalRecord.header.warcTargetUriStr;
-            warcDateStr = aOriginalRecord.header.warcDateStr;
-            warcDate = aOriginalRecord.header.warcDate;
-            warcPayloadDigest = aOriginalRecord.header.warcPayloadDigest;
-            warcPayloadDigestStr = aOriginalRecord.header.warcPayloadDigestStr; 
-            warcIpAddress = aOriginalRecord.header.warcIpAddress;
-            
-            warcRecordIdUri = aOriginalRecord.header.warcRecordIdUri;
-            contentType = aOriginalRecord.header.contentType;
-            
-            warcRecordIdStr = aOriginalRecord.header.warcRecordIdStr;
-        }
-        
-        payloadLen = contentLen - httpheaderLen;
+
+	public WarcRecordSer(WarcRecord aOriginalRecord, Long aContentLength) {
+		httpHeaderStr = "";
+		contentLen = aContentLength;
+		httpheaderLen = 0L;
+
+		// http header
+		HttpHeader httpHeader = aOriginalRecord.getHttpHeader();
+
+		if (httpHeader != null) {
+			if (httpHeader.httpVersion != null) {
+				httpHeaderStr += String.format("%s ",  httpHeader.httpVersion);
+
+			}
+			if (httpHeader.statusCode != null) {
+				httpHeaderStr += String.format("%d ",  httpHeader.statusCode);
+
+			}
+			if (httpHeader.reasonPhrase != null) {
+				httpHeaderStr += String.format("%s ",  httpHeader.reasonPhrase);
+
+			}
+			httpHeaderStr += String.format("\n");
+
+			for (HeaderLine hl : httpHeader.getHeaderList()) {
+				httpHeaderStr += String.format("%s: %s\n", hl.name, hl.value);
+			}
+
+			httpheader_contentType = httpHeader.contentType;
+			httpheader_statusCodeStr = httpHeader.statusCodeStr;
+
+			httpheaderLen = contentLen - httpHeader.getPayloadLength();
+			httpHeaderRaw = httpHeader.getHeader();
+		}
+
+		if (aOriginalRecord.header != null) {
+			warcTypeIdx = aOriginalRecord.header.warcTypeIdx;
+			warcTargetUriStr = aOriginalRecord.header.warcTargetUriStr;
+			warcDateStr = aOriginalRecord.header.warcDateStr;
+			warcDate = aOriginalRecord.header.warcDate;
+			warcPayloadDigest = aOriginalRecord.header.warcPayloadDigest;
+			warcPayloadDigestStr = aOriginalRecord.header.warcPayloadDigestStr;
+			warcIpAddress = aOriginalRecord.header.warcIpAddress;
+
+			warcRecordIdUri = aOriginalRecord.header.warcRecordIdUri;
+			contentType = aOriginalRecord.header.contentType;
+
+			warcRecordIdStr = aOriginalRecord.header.warcRecordIdStr;
+		}
+
+		payloadLen = contentLen - httpheaderLen;
 	}
-	
-	public boolean isDeduplicationCandidate() {
+
+	public boolean isDeduplicationCandidate(BrowsertrixWarcRewriterProperties aRewriterProperties) {
 		if (httpheader_contentType != null && httpheader_contentType.matches(DEFAULT_DENY_MIME_FILTER)) {
 			return false;
 		}
-		
+
+		if (!aRewriterProperties.isDoDeduplicationForRedirects() && getHttpheader_statusCodeStr().startsWith("3")) {
+			return false;
+		}
 		return true;
 	}
 
@@ -151,12 +154,12 @@ public class WarcRecordSer implements Serializable{
 	public Long getHttpheaderLen() {
 		return httpheaderLen;
 	}
-	
+
 	public Date getWarcDate() {
 		return warcDate;
 	}
-	
-    public byte[] getHttpHeaderRaw() {
+
+	public byte[] getHttpHeaderRaw() {
 		return httpHeaderRaw;
 	}
 }
