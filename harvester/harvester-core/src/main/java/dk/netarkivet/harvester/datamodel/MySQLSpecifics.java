@@ -442,4 +442,11 @@ public class MySQLSpecifics extends DBSpecifics {
         HarvestDBConnection.executeSql("mysql", tableName, 1 );
     }
 
+    @Override
+    protected void migratePartialharvestsv1tov2() {
+        log.info("Migrating partialharvest table version 1 to 2 by adding crawlertraps column.");
+        String[] sqlStatements = {"ALTER TABLE partialharvests ADD COLUMN crawlertraps LONGTEXT"};
+        HarvestDBConnection.updateTable("partialharvests", 2, sqlStatements);
+    }
+
 }
